@@ -230,6 +230,28 @@ footer ul a:hover{color:var(--vermelho);}
 .list-item .info{font-size:13.5px;}
 .list-item .info small{display:block;color:var(--cinza-texto);}
 
+/* Upload de currículo (premium) */
+.file-upload{
+  border:1.5px dashed var(--cinza-linha);border-radius:6px;padding:18px;
+  display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;background:var(--cinza-claro);
+}
+.file-upload:hover{border-color:var(--vermelho);}
+.file-upload input[type="file"]{display:none;}
+.file-upload-icon{
+  width:38px;height:38px;border-radius:50%;background:var(--preto);color:var(--vermelho);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;
+}
+.file-upload-text{font-size:13.5px;}
+.file-upload-text b{display:block;color:var(--preto);font-size:14px;}
+.file-upload-text span{color:var(--cinza-texto);font-size:12.5px;}
+.file-upload.has-file{border-color:var(--vermelho);border-style:solid;background:#fff;}
+.vaga-selecionada{
+  background:var(--cinza-claro);border-left:3px solid var(--vermelho);border-radius:4px;
+  padding:10px 14px;font-size:13.5px;margin-bottom:18px;
+}
+.vaga-selecionada b{color:var(--preto);}
+.form-note{color:var(--cinza-texto);font-size:11.5px;margin-top:6px;}
+
 /* =========================================================
    13. RESPONSIVIDADE
    ========================================================= */
@@ -440,31 +462,37 @@ footer ul a:hover{color:var(--vermelho);}
       <h2>Fale Conosco</h2>
       <p>Selecione o assunto do seu contato e envie sua mensagem diretamente para a nossa equipe.</p>
     </div>
-    <div class="contato-box reveal">
+    <!--
+      INTEGRAÇÃO FORMSPREE: troque a URL abaixo pelo endpoint gerado após
+      cadastrar o e-mail da Lilian Transportes em https://formspree.io
+      (formato correto: https://formspree.io/f/SEU_ID_AQUI)
+    -->
+    <form class="contato-box reveal" id="form-contato" action="https://formspree.io" method="POST" enctype="multipart/form-data">
       <p class="privacy-note">A Lilian Transportes utilizará seus dados pessoais apenas para receber e dar seguimento ao seu contato.</p>
+      <p class="success-msg" id="contato-success">Mensagem enviada com sucesso! Em breve entraremos em contato.</p>
       <div class="assunto-grid" id="assunto-grid">
-        <button class="assunto-btn" data-assunto="Vagas de Motorista">Vagas de Motorista</button>
-        <button class="assunto-btn" data-assunto="Outras Vagas">Outras Vagas</button>
-        <button class="assunto-btn" data-assunto="Cotação de Frete">Cotação de Frete</button>
-        <button class="assunto-btn" data-assunto="Seja um Fornecedor">Seja um Fornecedor</button>
-        <button class="assunto-btn" data-assunto="Parcerias">Parcerias</button>
-        <button class="assunto-btn" data-assunto="Outros">Outros</button>
+        <button type="button" class="assunto-btn" data-assunto="Vagas de Motorista">Vagas de Motorista</button>
+        <button type="button" class="assunto-btn" data-assunto="Outras Vagas">Outras Vagas</button>
+        <button type="button" class="assunto-btn" data-assunto="Cotação de Frete">Cotação de Frete</button>
+        <button type="button" class="assunto-btn" data-assunto="Seja um Fornecedor">Seja um Fornecedor</button>
+        <button type="button" class="assunto-btn" data-assunto="Parcerias">Parcerias</button>
+        <button type="button" class="assunto-btn" data-assunto="Outros">Outros</button>
       </div>
       <div class="field">
         <label for="contato-email">E-mail</label>
-        <input type="email" id="contato-email" placeholder="seu@email.com">
+        <input type="email" name="email" id="contato-email" placeholder="seu@email.com" required>
       </div>
       <div class="field">
         <label for="contato-assunto">Assunto selecionado</label>
-        <input type="text" id="contato-assunto" placeholder="Selecione uma opção acima" readonly>
+        <input type="text" name="assunto" id="contato-assunto" placeholder="Selecione uma opção acima" readonly required>
       </div>
       <div class="field">
         <label for="contato-mensagem">Mensagem</label>
-        <textarea id="contato-mensagem" rows="4" placeholder="Escreva sua mensagem"></textarea>
+        <textarea name="mensagem" id="contato-mensagem" rows="4" placeholder="Escreva sua mensagem" required></textarea>
       </div>
       <p class="error-msg" id="contato-error">Preencha e-mail, assunto e mensagem.</p>
-      <button class="btn btn-primary btn-lg" id="btn-contato-enviar">Enviar Mensagem</button>
-    </div>
+      <button type="submit" class="btn btn-primary btn-lg" id="btn-contato-enviar">Enviar Mensagem</button>
+    </form>
   </div>
 </section>
 
@@ -583,18 +611,39 @@ footer ul a:hover{color:var(--vermelho);}
 </div>
 
 <!-- =========================================================
-     MODAL: CANDIDATURA (não armazena dados)
+     MODAL: FORMULÁRIO DE CONTRATAÇÃO (candidatura à vaga)
      ========================================================= -->
 <div class="modal-overlay" id="modal-cadastro">
   <div class="modal-box">
     <button class="modal-close" data-close="modal-cadastro" aria-label="Fechar">✕</button>
     <h3>Cadastrar-se</h3>
-    <p class="sub">Informe seus dados e nossa equipe entrará em contato.</p>
-    <p class="success-msg" id="cadastro-success">Cadastro enviado com sucesso!</p>
-    <div class="field"><label for="cad-nome">Nome</label><input type="text" id="cad-nome" placeholder="Seu nome completo"></div>
-    <div class="field"><label for="cad-telefone">Telefone</label><input type="tel" id="cad-telefone" placeholder="(49) 90000-0000"></div>
-    <p class="error-msg" id="cadastro-error">Preencha nome e telefone.</p>
-    <button class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;" id="btn-cadastro-submit">Enviar Cadastro</button>
+    <p class="sub">Preencha seus dados e anexe seu currículo. Nossa equipe entrará em contato.</p>
+    <p class="success-msg" id="cadastro-success">Inscrição enviada com sucesso!</p>
+    <div class="vaga-selecionada" id="vaga-selecionada-box">Vaga: <b id="vaga-selecionada-nome">Cadastro geral</b></div>
+
+    <!--
+      INTEGRAÇÃO FORMSPREE: troque a URL abaixo pelo endpoint gerado após
+      cadastrar o e-mail da Lilian Transportes em https://formspree.io
+      (formato correto: https://formspree.io/f/SEU_ID_AQUI). O mesmo endpoint
+      deve ser usado nos dois formulários do site.
+    -->
+    <form id="form-candidatura" action="https://formspree.io" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="vaga" id="cad-vaga">
+      <div class="field"><label for="cad-nome">Nome Completo</label><input type="text" name="nome" id="cad-nome" placeholder="Seu nome completo" required></div>
+      <div class="field"><label for="cad-telefone">Telefone de Contato</label><input type="tel" name="telefone" id="cad-telefone" placeholder="(49) 90000-0000" required></div>
+      <div class="field"><label for="cad-resumo">Resumo Profissional / Sobre Você</label><textarea name="resumo" id="cad-resumo" rows="5" placeholder="Conte um pouco da sua experiência profissional" required></textarea></div>
+      <div class="field">
+        <label for="cad-curriculo">Currículo</label>
+        <label class="file-upload" id="file-upload-label" for="cad-curriculo">
+          <span class="file-upload-icon">↑</span>
+          <span class="file-upload-text"><b id="file-upload-name">Clique para anexar o currículo</b><span>PDF, DOC ou DOCX</span></span>
+        </label>
+        <input type="file" name="curriculo" id="cad-curriculo" accept=".pdf,.doc,.docx" required>
+        <p class="form-note">Tamanho máximo recomendado: 5 MB.</p>
+      </div>
+      <p class="error-msg" id="cadastro-error">Preencha todos os campos e anexe o currículo.</p>
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;" id="btn-cadastro-submit">Enviar Inscrição</button>
+    </form>
   </div>
 </div>
 
@@ -629,7 +678,6 @@ footer ul a:hover{color:var(--vermelho);}
   /* Senha em texto puro: apenas demonstração visual, sem backend.
      Não usar como proteção real de dados sensíveis. */
   const SENHA_TI = "lilian123";
-  const EMAIL_CONTATO = "financeiro@liliantransportes.com.br";
 
   const $  = (id) => document.getElementById(id);
   const qsa = (sel) => document.querySelectorAll(sel);
@@ -666,9 +714,9 @@ footer ul a:hover{color:var(--vermelho);}
         <span class="tag">Vaga</span><h3>${escapeHtml(v.cargo)}</h3>
         <span class="cidade">${escapeHtml(v.cidade)}</span><p>${escapeHtml(v.desc)}</p>
         <span class="meta">${v.data}</span>
-        <button class="btn btn-dark btn-candidatura">Cadastrar-se</button>
+        <button type="button" class="btn btn-dark btn-candidatura" data-cargo="${escapeHtml(v.cargo)}">Cadastrar-se</button>
       </div></div>`).join('');
-    qsa('.btn-candidatura').forEach(btn => btn.addEventListener('click', abrirCadastro));
+    qsa('.btn-candidatura').forEach(btn => btn.addEventListener('click', ()=> abrirCadastro(btn.dataset.cargo)));
   }
 
   /* Notícias — público */
@@ -753,39 +801,81 @@ footer ul a:hover{color:var(--vermelho);}
     }
   });
 
-  /* Candidatura — Nome + Telefone, não armazenado */
-  function abrirCadastro(){
+  /* -----------------------------------------------------------
+     ENVIO DE FORMULÁRIOS VIA FORMSPREE (POST multipart/form-data)
+     Envio por AJAX (fetch) para exibir mensagem de sucesso sem
+     recarregar a página. Se o "action" ainda não tiver sido
+     substituído pelo endpoint real da Formspree, os formulários
+     continuam funcionando como envio de e-mail nativo do navegador
+     (fallback), sem quebrar a página.
+     ----------------------------------------------------------- */
+  function enviarFormulario(form, {successEl, errorEl, onSuccess}){
+    return fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    }).then(resp=>{
+      if(resp.ok){
+        errorEl.classList.remove('show');
+        successEl.classList.add('show');
+        if(onSuccess) onSuccess();
+      } else {
+        errorEl.textContent = 'Não foi possível enviar agora. Verifique o endpoint da Formspree ou tente novamente.';
+        errorEl.classList.add('show');
+      }
+    }).catch(()=>{
+      errorEl.textContent = 'Não foi possível enviar agora. Verifique sua conexão ou o endpoint da Formspree.';
+      errorEl.classList.add('show');
+    });
+  }
+
+  /* Formulário de Contratação (vagas) — Nome, Telefone, Resumo, Currículo */
+  function abrirCadastro(vagaTitulo){
     $('cadastro-success').classList.remove('show'); $('cadastro-error').classList.remove('show');
-    $('cad-nome').value=''; $('cad-telefone').value='';
+    $('form-candidatura').reset();
+    $('file-upload-name').textContent = 'Clique para anexar o currículo';
+    $('file-upload-label').classList.remove('has-file');
+    const titulo = vagaTitulo || 'Cadastro geral';
+    $('vaga-selecionada-nome').textContent = titulo;
+    $('cad-vaga').value = titulo;
     openModal('modal-cadastro');
   }
-  $('btn-cadastro-submit').addEventListener('click', ()=>{
-    const nome = $('cad-nome').value.trim(), telefone = $('cad-telefone').value.trim();
-    if(!nome || !telefone){ $('cadastro-error').classList.add('show'); return; }
-    $('cadastro-error').classList.remove('show'); $('cadastro-success').classList.add('show');
-    $('cad-nome').value=''; $('cad-telefone').value='';
-    setTimeout(()=> closeModal('modal-cadastro'), 1500);
+
+  $('cad-curriculo').addEventListener('change', (e)=>{
+    const arquivo = e.target.files[0];
+    $('file-upload-name').textContent = arquivo ? arquivo.name : 'Clique para anexar o currículo';
+    $('file-upload-label').classList.toggle('has-file', !!arquivo);
   });
 
-  /* Fale Conosco — seleção de assunto + envio via mailto (sem backend) */
+  $('form-candidatura').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const form = e.target;
+    if(!form.checkValidity()){ form.reportValidity(); return; }
+    enviarFormulario(form, {
+      successEl: $('cadastro-success'),
+      errorEl: $('cadastro-error'),
+      onSuccess: ()=> setTimeout(()=> closeModal('modal-cadastro'), 1800)
+    });
+  });
+
+  /* Fale Conosco — seleção de assunto preenche o campo automaticamente */
   qsa('.assunto-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       qsa('.assunto-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       $('contato-assunto').value = btn.dataset.assunto;
-      if(btn.dataset.assunto === 'Vagas de Motorista' || btn.dataset.assunto === 'Outras Vagas'){
-        abrirCadastro();
-      }
     });
   });
-  $('btn-contato-enviar').addEventListener('click', ()=>{
-    const email = $('contato-email').value.trim();
-    const assunto = $('contato-assunto').value.trim();
-    const mensagem = $('contato-mensagem').value.trim();
-    if(!email || !assunto || !mensagem){ $('contato-error').classList.add('show'); return; }
-    $('contato-error').classList.remove('show');
-    const corpo = `Mensagem de: ${email}%0D%0A%0D%0A${encodeURIComponent(mensagem)}`;
-    window.location.href = `mailto:${EMAIL_CONTATO}?subject=${encodeURIComponent('[Site] ' + assunto)}&body=${corpo}`;
+
+  $('form-contato').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const form = e.target;
+    if(!form.checkValidity()){ form.reportValidity(); return; }
+    enviarFormulario(form, {
+      successEl: $('contato-success'),
+      errorEl: $('contato-error'),
+      onSuccess: ()=> form.reset()
+    });
   });
 
   /* Checklist do motorista */
