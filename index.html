@@ -462,7 +462,12 @@ footer ul a:hover{color:var(--vermelho);}
       <h2>Fale Conosco</h2>
       <p>Selecione o assunto do seu contato e envie sua mensagem diretamente para a nossa equipe.</p>
     </div>
-    <form class="contato-box reveal" id="form-contato">
+    <!--
+      INTEGRAÇÃO FORMSPREE: troque a URL abaixo pelo endpoint gerado após
+      cadastrar o e-mail da Lilian Transportes em https://formspree.io
+      (formato correto: https://formspree.io/f/SEU_ID_AQUI)
+    -->
+    <form class="contato-box reveal" id="form-contato" action="https://formspree.io" method="POST" enctype="multipart/form-data">
       <p class="privacy-note">A Lilian Transportes utilizará seus dados pessoais apenas para receber e dar seguimento ao seu contato.</p>
       <p class="success-msg" id="contato-success">Mensagem enviada com sucesso! Em breve entraremos em contato.</p>
       <div class="assunto-grid" id="assunto-grid">
@@ -475,7 +480,7 @@ footer ul a:hover{color:var(--vermelho);}
       </div>
       <div class="field">
         <label for="contato-email">E-mail</label>
-        <input type="email" name="email" id="contato-email" placeholder="levensonjeanbaptiste2009@gmail.com" required>
+        <input type="email" name="email" id="contato-email" placeholder="seu@email.com" required>
       </div>
       <div class="field">
         <label for="contato-assunto">Assunto selecionado</label>
@@ -487,7 +492,6 @@ footer ul a:hover{color:var(--vermelho);}
       </div>
       <p class="error-msg" id="contato-error">Preencha e-mail, assunto e mensagem.</p>
       <button type="submit" class="btn btn-primary btn-lg" id="btn-contato-enviar">Enviar Mensagem</button>
-      <p class="form-note" style="text-align:center;margin-top:12px;">💡 Nota: Caso precise anexar documentos ou currículos, anexe-os diretamente no seu aplicativo de e-mail que abrirá a seguir.</p>
     </form>
   </div>
 </section>
@@ -863,25 +867,15 @@ footer ul a:hover{color:var(--vermelho);}
     });
   });
 
-  /* -----------------------------------------------------------
-     FALE CONOSCO — envio via mailto (sem backend, sem API externa)
-     ----------------------------------------------------------- */
-  const EMAIL_CONTATO = "financeiro@liliantransportes.com.br";
-
   $('form-contato').addEventListener('submit', (e)=>{
     e.preventDefault();
     const form = e.target;
     if(!form.checkValidity()){ form.reportValidity(); return; }
-
-    const emailCliente = $('contato-email').value.trim();
-    const assunto = $('contato-assunto').value.trim();
-    const mensagem = $('contato-mensagem').value.trim();
-
-    const urlEmail = `mailto:${EMAIL_CONTATO}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent("E-mail de contato: " + emailCliente + "\n\nMensagem:\n" + mensagem)}`;
-
-    $('contato-error').classList.remove('show');
-    $('contato-success').classList.add('show');
-    window.location.href = urlEmail;
+    enviarFormulario(form, {
+      successEl: $('contato-success'),
+      errorEl: $('contato-error'),
+      onSuccess: ()=> form.reset()
+    });
   });
 
   /* Checklist do motorista */
