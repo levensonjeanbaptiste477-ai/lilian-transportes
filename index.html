@@ -49,11 +49,12 @@ header{background:var(--preto);position:sticky;top:0;z-index:1000;border-bottom:
 .nav-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;}
 .brand{display:flex;align-items:center;gap:14px;}
 .logo-lt{
-  width:52px;height:52px;border-radius:50%;background:var(--preto-2);border:3px solid var(--vermelho);
+  width:52px;height:52px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  box-shadow:0 0 14px rgba(228,3,46,.45), 0 0 0 3px rgba(228,3,46,.12);
 }
-.logo-lt span{font-family:var(--font-display);font-weight:700;color:var(--vermelho);font-size:18px;letter-spacing:.02em;text-shadow:0 0 8px rgba(228,3,46,.6);}
+.logo-lt img{
+  width:100%;height:100%;object-fit:contain;
+}
 .brand-name{font-family:var(--font-display);font-weight:700;color:#fff;font-size:20px;letter-spacing:.02em;line-height:1.1;}
 .brand-name small{display:block;font-family:var(--font-body);font-weight:400;font-size:11px;color:#9a9dae;letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
 nav.main-nav ul{display:flex;gap:28px;}
@@ -82,7 +83,7 @@ nav.main-nav a:hover{color:#fff;border-color:var(--vermelho);}
   position:absolute;inset:0;
   background:
     linear-gradient(100deg, rgba(19,21,32,.93) 20%, rgba(19,21,32,.55) 55%, rgba(228,3,46,.22) 100%),
-    url('frota.jpg')
+    url('https://images.unsplash.com/photo-1783428673235-77dafc15eb59?fm=jpg&q=80&w=2000&auto=format&fit=crop')
     center 50%/cover no-repeat;
   will-change:transform;
 }
@@ -224,7 +225,6 @@ footer ul a:hover{color:var(--vermelho);}
 .admin-panel-header{background:var(--preto);margin:-36px -32px 24px;padding:20px 32px;border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:center;justify-content:space-between;}
 .admin-panel-header h3{color:#fff;margin:0;}
 .admin-panel-header .logo-lt{width:38px;height:38px;}
-.admin-panel-header .logo-lt span{font-size:13px;}
 .list-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--cinza-linha);border-radius:5px;margin-bottom:10px;}
 .list-item .del{color:var(--vermelho);font-weight:600;font-size:13px;flex-shrink:0;}
 .list-item .info{font-size:13.5px;}
@@ -293,7 +293,7 @@ footer ul a:hover{color:var(--vermelho);}
 <header>
   <div class="nav-wrap container">
     <div class="brand">
-      <div class="logo-lt" aria-hidden="true"><span>LT</span></div>
+      <div class="logo-lt" aria-hidden="true"><img src="lilian-logo.pnj.png" alt="Lilian Transportes"></div>
       <div class="brand-name">Lilian Transportes<small>Desde 1997 · Chapecó, SC</small></div>
     </div>
     <nav class="main-nav" aria-label="Navegação principal">
@@ -515,7 +515,7 @@ footer ul a:hover{color:var(--vermelho);}
     <div class="footer-grid">
       <div class="footer-brand">
         <div class="brand" style="margin-bottom:6px;">
-          <div class="logo-lt" aria-hidden="true"><span>LT</span></div>
+          <div class="logo-lt" aria-hidden="true"><img src="lilian-logo.pnj.png" alt="Lilian Transportes"></div>
           <div class="brand-name">Lilian Transportes</div>
         </div>
         <p>Transporte rodoviário de cargas desde 1997.</p>
@@ -568,7 +568,7 @@ footer ul a:hover{color:var(--vermelho);}
 <div class="modal-overlay" id="modal-login">
   <div class="modal-box">
     <button class="modal-close" data-close="modal-login" aria-label="Fechar">✕</button>
-    <div class="logo-lt" style="margin-bottom:18px;" aria-hidden="true"><span>LT</span></div>
+    <div class="logo-lt" style="margin-bottom:18px;" aria-hidden="true"><img src="lilian-logo.pnj.png" alt="Lilian Transportes"></div>
     <h3>Acesso Restrito — TI</h3>
     <p class="sub">Painel administrativo interno. Uso exclusivo da equipe autorizada.</p>
     <div class="field">
@@ -588,7 +588,7 @@ footer ul a:hover{color:var(--vermelho);}
     <button class="modal-close" data-close="modal-admin" aria-label="Fechar">✕</button>
     <div class="admin-panel-header">
       <div class="brand" style="gap:12px;">
-        <div class="logo-lt" aria-hidden="true"><span>LT</span></div>
+        <div class="logo-lt" aria-hidden="true"><img src="lilian-logo.pnj.png" alt="Lilian Transportes"></div>
         <h3>Painel Administrativo</h3>
       </div>
       <button class="btn btn-primary" id="btn-admin-logout" style="padding:8px 16px;font-size:13px;">Sair</button>
