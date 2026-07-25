@@ -462,12 +462,7 @@ footer ul a:hover{color:var(--vermelho);}
       <h2>Fale Conosco</h2>
       <p>Selecione o assunto do seu contato e envie sua mensagem diretamente para a nossa equipe.</p>
     </div>
-    <!--
-      INTEGRAÇÃO FORMSPREE: troque a URL abaixo pelo endpoint gerado após
-      cadastrar o e-mail da Lilian Transportes em https://formspree.io
-      (formato correto: https://formspree.io/f/SEU_ID_AQUI)
-    -->
-    <form class="contato-box reveal" id="form-contato" action="https://formspree.io/f/xzdngdwg" method="POST" enctype="multipart/form-data">
+    <form class="contato-box reveal" id="form-contato">
       <p class="privacy-note">A Lilian Transportes utilizará seus dados pessoais apenas para receber e dar seguimento ao seu contato.</p>
       <p class="success-msg" id="contato-success">Mensagem enviada com sucesso! Em breve entraremos em contato.</p>
       <div class="assunto-grid" id="assunto-grid">
@@ -484,7 +479,7 @@ footer ul a:hover{color:var(--vermelho);}
       </div>
       <div class="field">
         <label for="contato-arquivo">Anexar Arquivo ou Documento:</label>
-        <input type="file" id="contato-arquivo" name="arquivo_contato">
+        <input type="file" id="contato-arquivo" name="arquivo_cliente">
       </div>
       <div class="field">
         <label for="contato-assunto">Assunto selecionado</label>
@@ -626,12 +621,12 @@ footer ul a:hover{color:var(--vermelho);}
     <div class="vaga-selecionada" id="vaga-selecionada-box">Vaga: <b id="vaga-selecionada-nome">Cadastro geral</b></div>
 
     <!--
-      INTEGRAÇÃO FORMSPREE: troque a URL abaixo pelo endpoint gerado após
-      cadastrar o e-mail da Lilian Transportes em https://formspree.io
-      (formato correto: https://formspree.io/f/SEU_ID_AQUI). O mesmo endpoint
-      deve ser usado nos dois formulários do site.
+      INTEGRAÇÃO BACK-END PYTHON (PythonAnywhere): o envio deste formulário é
+      controlado 100% pelo JavaScript (função enviarFormulario), que dispara
+      via fetch para PYTHON_API_URL, definida no <script> no final da página.
+      Ajuste essa constante se a rota do seu servidor mudar.
     -->
-    <form id="form-candidatura" action="https://formspree.io" method="POST" enctype="multipart/form-data">
+    <form id="form-candidatura">
       <input type="hidden" name="vaga" id="cad-vaga">
       <div class="field"><label for="cad-nome">Nome Completo</label><input type="text" name="nome" id="cad-nome" placeholder="Seu nome completo" required></div>
       <div class="field"><label for="cad-telefone">Telefone de Contato</label><input type="tel" name="telefone" id="cad-telefone" placeholder="(49) 90000-0000" required></div>
@@ -807,30 +802,35 @@ footer ul a:hover{color:var(--vermelho);}
 
   /* -----------------------------------------------------------
      ENVIO DE FORMULÁRIOS VIA FORMSPREE (POST multipart/form-data)
-     Envio por AJAX (fetch) para exibir mensagem de sucesso sem
-     recarregar a página. Se o "action" ainda não tiver sido
-     substituído pelo endpoint real da Formspree, os formulários
-     continuam funcionando como envio de e-mail nativo do navegador
-     (fallback), sem quebrar a página.
+     Envio por AJAX (fetch) diretamente para o back-end Python (PythonAnywhere),
+     responsável por enviar o e-mail via SMTP/API do Gmail com as credenciais
+     protegidas no servidor. O front-end nunca tem acesso a essas credenciais.
      ----------------------------------------------------------- */
+
+  // TODO: ajuste a rota final se o seu servidor Flask/Django expuser um
+  // caminho específico (ex: '/enviar-email') em vez da raiz do domínio.
+  const PYTHON_API_URL = 'https://velocomerce.pythonanywhere.com';
+
   function enviarFormulario(form, {successEl, errorEl, onSuccess}){
-    return fetch(form.action, {
+    return fetch(PYTHON_API_URL, {
       method: 'POST',
-      body: new FormData(form),
-      headers: { 'Accept': 'application/json' }
-    }).then(resp=>{
-      if(resp.ok){
-        errorEl.classList.remove('show');
-        successEl.classList.add('show');
-        if(onSuccess) onSuccess();
-      } else {
-        errorEl.textContent = 'Não foi possível enviar agora. Verifique o endpoint da Formspree ou tente novamente.';
+      body: new FormData(form)
+      // Sem header de Content-Type: o navegador define automaticamente
+      // "multipart/form-data" com o boundary correto para o arquivo anexado.
+    }).then(resp => resp.json())
+      .then(data=>{
+        if(data.status === 'success'){
+          errorEl.classList.remove('show');
+          successEl.classList.add('show');
+          if(onSuccess) onSuccess();
+        } else {
+          errorEl.textContent = 'Não foi possível enviar agora. Tente novamente em instantes.';
+          errorEl.classList.add('show');
+        }
+      }).catch(()=>{
+        errorEl.textContent = 'Não foi possível enviar agora. Verifique sua conexão ou o servidor.';
         errorEl.classList.add('show');
-      }
-    }).catch(()=>{
-      errorEl.textContent = 'Não foi possível enviar agora. Verifique sua conexão ou o endpoint da Formspree.';
-      errorEl.classList.add('show');
-    });
+      });
   }
 
   /* Formulário de Contratação (vagas) — Nome, Telefone, Resumo, Currículo */
