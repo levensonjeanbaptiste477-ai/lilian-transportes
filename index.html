@@ -83,7 +83,7 @@ nav.main-nav a:hover{color:#fff;border-color:var(--vermelho);}
   position:absolute;inset:0;
   background:
     linear-gradient(100deg, rgba(19,21,32,.93) 20%, rgba(19,21,32,.55) 55%, rgba(228,3,46,.22) 100%),
-    url('frota.jpg')
+    url('https://images.unsplash.com/photo-1783428673235-77dafc15eb59?fm=jpg&q=80&w=2000&auto=format&fit=crop')
     center 50%/cover no-repeat;
   will-change:transform;
 }
@@ -230,21 +230,6 @@ footer ul a:hover{color:var(--vermelho);}
 .list-item .info{font-size:13.5px;}
 .list-item .info small{display:block;color:var(--cinza-texto);}
 
-/* Upload de currículo (premium) */
-.file-upload{
-  border:1.5px dashed var(--cinza-linha);border-radius:6px;padding:18px;
-  display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;background:var(--cinza-claro);
-}
-.file-upload:hover{border-color:var(--vermelho);}
-.file-upload input[type="file"]{display:none;}
-.file-upload-icon{
-  width:38px;height:38px;border-radius:50%;background:var(--preto);color:var(--vermelho);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;
-}
-.file-upload-text{font-size:13.5px;}
-.file-upload-text b{display:block;color:var(--preto);font-size:14px;}
-.file-upload-text span{color:var(--cinza-texto);font-size:12.5px;}
-.file-upload.has-file{border-color:var(--vermelho);border-style:solid;background:#fff;}
 .vaga-selecionada{
   background:var(--cinza-claro);border-left:3px solid var(--vermelho);border-radius:4px;
   padding:10px 14px;font-size:13.5px;margin-bottom:18px;
@@ -478,10 +463,6 @@ footer ul a:hover{color:var(--vermelho);}
         <input type="email" name="email" id="contato-email" placeholder="seu@email.com" required>
       </div>
       <div class="field">
-        <label for="contato-arquivo">Anexar Arquivo ou Documento:</label>
-        <input type="file" id="contato-arquivo" name="arquivo_cliente">
-      </div>
-      <div class="field">
         <label for="contato-assunto">Assunto selecionado</label>
         <input type="text" name="assunto" id="contato-assunto" placeholder="Selecione uma opção acima" readonly required>
       </div>
@@ -491,6 +472,7 @@ footer ul a:hover{color:var(--vermelho);}
       </div>
       <p class="error-msg" id="contato-error">Preencha e-mail, assunto e mensagem.</p>
       <button type="submit" class="btn btn-primary btn-lg" id="btn-contato-enviar">Enviar Mensagem</button>
+      <p class="form-note" style="text-align:center;margin-top:12px;">💡 Nota: caso precise enviar algum documento ou anexo, você poderá anexá-lo diretamente pelo WhatsApp após o envio desta mensagem.</p>
     </form>
   </div>
 </section>
@@ -616,31 +598,21 @@ footer ul a:hover{color:var(--vermelho);}
   <div class="modal-box">
     <button class="modal-close" data-close="modal-cadastro" aria-label="Fechar">✕</button>
     <h3>Cadastrar-se</h3>
-    <p class="sub">Preencha seus dados e anexe seu currículo. Nossa equipe entrará em contato.</p>
+    <p class="sub">Preencha seus dados. Você será direcionado ao WhatsApp da Lilian Transportes.</p>
     <p class="success-msg" id="cadastro-success">Inscrição enviada com sucesso!</p>
     <div class="vaga-selecionada" id="vaga-selecionada-box">Vaga: <b id="vaga-selecionada-nome">Cadastro geral</b></div>
 
     <!--
-      INTEGRAÇÃO BACK-END PYTHON (PythonAnywhere): o envio deste formulário é
-      controlado 100% pelo JavaScript (função enviarFormulario), que dispara
-      via fetch para PYTHON_API_URL, definida no <script> no final da página.
-      Ajuste essa constante se a rota do seu servidor mudar.
+      ENVIO 100% VIA WHATSAPP (wa.me): não há requisições de rede nem
+      servidor externo envolvidos. O JavaScript apenas monta o texto e
+      abre o link oficial da API do WhatsApp com window.open.
     -->
     <form id="form-candidatura">
       <input type="hidden" name="vaga" id="cad-vaga">
       <div class="field"><label for="cad-nome">Nome Completo</label><input type="text" name="nome" id="cad-nome" placeholder="Seu nome completo" required></div>
-      <div class="field"><label for="cad-telefone">Telefone de Contato</label><input type="tel" name="telefone" id="cad-telefone" placeholder="(49) 90000-0000" required></div>
       <div class="field"><label for="cad-resumo">Resumo Profissional / Sobre Você</label><textarea name="resumo" id="cad-resumo" rows="5" placeholder="Conte um pouco da sua experiência profissional" required></textarea></div>
-      <div class="field">
-        <label for="cad-curriculo">Currículo</label>
-        <label class="file-upload" id="file-upload-label" for="cad-curriculo">
-          <span class="file-upload-icon">↑</span>
-          <span class="file-upload-text"><b id="file-upload-name">Clique para anexar o currículo</b><span>PDF, DOC ou DOCX</span></span>
-        </label>
-        <input type="file" name="curriculo" id="cad-curriculo" accept=".pdf,.doc,.docx" required>
-        <p class="form-note">Tamanho máximo recomendado: 5 MB.</p>
-      </div>
-      <p class="error-msg" id="cadastro-error">Preencha todos os campos e anexe o currículo.</p>
+      <p class="form-note" style="margin:-6px 0 16px;">💡 Nota: O texto do seu currículo será enviado na mensagem a seguir. Se desejar enviar seu PDF completo, anexe-o diretamente usando o clipe de arquivos do seu WhatsApp.</p>
+      <p class="error-msg" id="cadastro-error">Preencha nome completo e resumo profissional.</p>
       <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;" id="btn-cadastro-submit">Enviar Inscrição</button>
     </form>
   </div>
@@ -801,65 +773,45 @@ footer ul a:hover{color:var(--vermelho);}
   });
 
   /* -----------------------------------------------------------
-     ENVIO DE FORMULÁRIOS VIA FORMSPREE (POST multipart/form-data)
-     Envio por AJAX (fetch) diretamente para o back-end Python (PythonAnywhere),
-     responsável por enviar o e-mail via SMTP/API do Gmail com as credenciais
-     protegidas no servidor. O front-end nunca tem acesso a essas credenciais.
+     ENVIO 100% VIA WHATSAPP (wa.me) — sem fetch, sem API externa,
+     sem servidor. O JavaScript apenas monta o texto formatado e
+     abre o link oficial da API do WhatsApp com window.open.
      ----------------------------------------------------------- */
+  const WHATSAPP_NUMERO = '554988926261'; // número administrativo da Lilian Transportes
 
-  // TODO: ajuste a rota final se o seu servidor Flask/Django expuser um
-  // caminho específico (ex: '/enviar-email') em vez da raiz do domínio.
-  const PYTHON_API_URL = 'https://velocomerce.pythonanywhere.com';
-
-  function enviarFormulario(form, {successEl, errorEl, onSuccess}){
-    return fetch(PYTHON_API_URL, {
-      method: 'POST',
-      body: new FormData(form)
-      // Sem header de Content-Type: o navegador define automaticamente
-      // "multipart/form-data" com o boundary correto para o arquivo anexado.
-    }).then(resp => resp.json())
-      .then(data=>{
-        if(data.status === 'success'){
-          errorEl.classList.remove('show');
-          successEl.classList.add('show');
-          if(onSuccess) onSuccess();
-        } else {
-          errorEl.textContent = 'Não foi possível enviar agora. Tente novamente em instantes.';
-          errorEl.classList.add('show');
-        }
-      }).catch(()=>{
-        errorEl.textContent = 'Não foi possível enviar agora. Verifique sua conexão ou o servidor.';
-        errorEl.classList.add('show');
-      });
+  function abrirWhatsApp(texto){
+    const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
   }
 
-  /* Formulário de Contratação (vagas) — Nome, Telefone, Resumo, Currículo */
+  /* Formulário de Contratação (vagas) — Nome + Resumo Profissional */
   function abrirCadastro(vagaTitulo){
     $('cadastro-success').classList.remove('show'); $('cadastro-error').classList.remove('show');
     $('form-candidatura').reset();
-    $('file-upload-name').textContent = 'Clique para anexar o currículo';
-    $('file-upload-label').classList.remove('has-file');
     const titulo = vagaTitulo || 'Cadastro geral';
     $('vaga-selecionada-nome').textContent = titulo;
     $('cad-vaga').value = titulo;
     openModal('modal-cadastro');
   }
 
-  $('cad-curriculo').addEventListener('change', (e)=>{
-    const arquivo = e.target.files[0];
-    $('file-upload-name').textContent = arquivo ? arquivo.name : 'Clique para anexar o currículo';
-    $('file-upload-label').classList.toggle('has-file', !!arquivo);
-  });
-
   $('form-candidatura').addEventListener('submit', (e)=>{
     e.preventDefault();
     const form = e.target;
     if(!form.checkValidity()){ form.reportValidity(); return; }
-    enviarFormulario(form, {
-      successEl: $('cadastro-success'),
-      errorEl: $('cadastro-error'),
-      onSuccess: ()=> setTimeout(()=> closeModal('modal-cadastro'), 1800)
-    });
+
+    const vaga = $('cad-vaga').value.trim();
+    const nome = $('cad-nome').value.trim();
+    const resumo = $('cad-resumo').value.trim();
+
+    const texto = `💼 *CANDIDATURA PARA VAGA DE EMPREGO*\n`
+      + `• *Vaga Pretendida:* ${vaga}\n`
+      + `• *Nome do Candidato:* ${nome}\n`
+      + `• *Resumo Profissional:* ${resumo}`;
+
+    $('cadastro-error').classList.remove('show');
+    $('cadastro-success').classList.add('show');
+    abrirWhatsApp(texto);
+    setTimeout(()=> closeModal('modal-cadastro'), 1800);
   });
 
   /* Fale Conosco — seleção de assunto preenche o campo automaticamente */
@@ -875,11 +827,21 @@ footer ul a:hover{color:var(--vermelho);}
     e.preventDefault();
     const form = e.target;
     if(!form.checkValidity()){ form.reportValidity(); return; }
-    enviarFormulario(form, {
-      successEl: $('contato-success'),
-      errorEl: $('contato-error'),
-      onSuccess: ()=> form.reset()
-    });
+
+    const assunto = $('contato-assunto').value.trim();
+    const emailCliente = $('contato-email').value.trim();
+    const mensagem = $('contato-mensagem').value.trim();
+
+    const texto = `📢 *NOVO CONTATO VIA PORTAL INSTITUCIONAL*\n`
+      + `• *Assunto:* ${assunto}\n`
+      + `• *E-mail do Cliente:* ${emailCliente}\n`
+      + `• *Mensagem enviada:* ${mensagem}`;
+
+    $('contato-error').classList.remove('show');
+    $('contato-success').classList.add('show');
+    abrirWhatsApp(texto);
+    form.reset();
+    qsa('.assunto-btn').forEach(b=>b.classList.remove('active'));
   });
 
   /* Checklist do motorista */
