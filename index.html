@@ -70,6 +70,22 @@ nav.main-nav a:hover{color:#fff;border-color:var(--vermelho);}
 .btn-dark:hover{background:var(--preto-2);transform:translateY(-2px);}
 .btn-checklist{background:linear-gradient(135deg,var(--vermelho),var(--vermelho-escuro));color:#fff;font-weight:700;box-shadow:0 8px 20px -8px rgba(228,3,46,.7);}
 .btn-checklist:hover{transform:translateY(-2px) scale(1.02);}
+.btn-bell{
+  position:relative;color:#fff;background:var(--preto-2);border:1px solid rgba(255,255,255,.2);
+  width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+}
+.btn-bell:hover{border-color:var(--vermelho);}
+.btn-bell .dot{
+  position:absolute;top:3px;right:3px;width:11px;height:11px;border-radius:50%;
+  background:var(--vermelho);display:none;border:2px solid var(--preto);
+}
+.btn-bell .dot.show{display:block;animation:pulse-dot 1.6s infinite;}
+@keyframes pulse-dot{
+  0%{box-shadow:0 0 0 0 rgba(228,3,46,.6);}
+  70%{box-shadow:0 0 0 8px rgba(228,3,46,0);}
+  100%{box-shadow:0 0 0 0 rgba(228,3,46,0);}
+}
 .burger{display:none;color:#fff;font-size:26px;}
 .mobile-nav{display:none;flex-direction:column;gap:2px;background:var(--preto-2);padding:12px 24px;}
 .mobile-nav.active{display:flex;}
@@ -292,6 +308,9 @@ footer ul a:hover{color:var(--vermelho);}
       </ul>
     </nav>
     <div class="nav-actions">
+      <button class="btn-bell" id="btn-atendimento" title="Painel de Atendimento" aria-label="Painel de Atendimento">
+        🔔<span class="dot" id="atendimento-dot"></span>
+      </button>
       <button class="btn btn-checklist" id="btn-checklist">Checklist</button>
     </div>
     <button class="burger" id="btn-burger" aria-label="Abrir menu" aria-expanded="false">☰</button>
@@ -571,11 +590,16 @@ footer ul a:hover{color:var(--vermelho);}
       <button class="btn btn-primary" id="btn-admin-logout" style="padding:8px 16px;font-size:13px;">Sair</button>
     </div>
     <div class="admin-tabs">
-      <button class="admin-tab active" data-tab="tab-vagas">Cadastrar Vaga</button>
+      <button class="admin-tab active" data-tab="tab-atendimento">Atendimento</button>
+      <button class="admin-tab" data-tab="tab-vagas">Cadastrar Vaga</button>
       <button class="admin-tab" data-tab="tab-noticias">Cadastrar Notícia</button>
     </div>
     <p class="success-msg" id="admin-success">Publicado com sucesso.</p>
-    <div class="admin-tab-content" id="tab-vagas">
+    <div class="admin-tab-content" id="tab-atendimento">
+      <p class="sub" style="margin-bottom:16px;">Mensagens recebidas pelo formulário de contato e pelas candidaturas de vagas (armazenadas neste navegador).</p>
+      <div id="admin-atendimento-list"></div>
+    </div>
+    <div class="admin-tab-content" id="tab-vagas" style="display:none;">
       <div class="field"><label for="vaga-cargo">Cargo</label><input type="text" id="vaga-cargo" placeholder="Ex: Motorista Categoria E"></div>
       <div class="field"><label for="vaga-cidade">Cidade</label><input type="text" id="vaga-cidade" placeholder="Ex: Chapecó - SC"></div>
       <div class="field"><label for="vaga-desc">Descrição</label><textarea id="vaga-desc" rows="3" placeholder="Requisitos e responsabilidades da vaga"></textarea></div>
@@ -657,9 +681,73 @@ footer ul a:hover{color:var(--vermelho);}
 
   const KEY_VAGAS = 'lt_vagas';
   const KEY_NOTICIAS = 'lt_noticias';
+  const KEY_MENSAGENS = 'lt_mensagens';
   const readStore  = (key) => JSON.parse(localStorage.getItem(key) || '[]');
   const writeStore = (key, data) => localStorage.setItem(key, JSON.stringify(data));
   function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+  /* -----------------------------------------------------------
+     PAINEL DE ATENDIMENTO (local, neste navegador)
+     Registra uma cópia da mensagem/candidatura em localStorage
+     para o painel de TI acompanhar em tempo real, com bipe sonoro
+     e bolinha vermelha — sem enviar nada para fora escondido do
+     usuário. O envio de verdade continua sendo o link do WhatsApp,
+     aberto às claras para a pessoa confirmar o envio.
+     ----------------------------------------------------------- */
+  function tocarBip(){
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.35);
+    }catch(e){ /* áudio bloqueado pelo navegador até haver interação — sem problema */ }
+  }
+
+  function registrarMensagem(tipo, dados){
+    const mensagens = readStore(KEY_MENSAGENS);
+    mensagens.unshift({
+      tipo, dados, lida:false,
+      data: new Date().toLocaleString('pt-BR')
+    });
+    writeStore(KEY_MENSAGENS, mensagens);
+    atualizarBadgeAtendimento();
+    tocarBip();
+  }
+
+  function atualizarBadgeAtendimento(){
+    const naoLidas = readStore(KEY_MENSAGENS).filter(m => !m.lida).length;
+    $('atendimento-dot').classList.toggle('show', naoLidas > 0);
+  }
+
+  function renderAtendimento(){
+    const mensagens = readStore(KEY_MENSAGENS);
+    const el = $('admin-atendimento-list');
+    if(mensagens.length === 0){ el.innerHTML = '<p class="empty-state"><p>Nenhuma mensagem recebida ainda.</p></p>'; return; }
+    el.innerHTML = mensagens.map((m,i) => {
+      const linhas = m.tipo === 'contato'
+        ? `E-mail: ${escapeHtml(m.dados.email)}<br>Assunto: ${escapeHtml(m.dados.assunto)}<br>Mensagem: ${escapeHtml(m.dados.mensagem)}`
+        : `Vaga: ${escapeHtml(m.dados.vaga)}<br>Nome: ${escapeHtml(m.dados.nome)}<br>Resumo: ${escapeHtml(m.dados.resumo)}`;
+      return `<div class="list-item" style="align-items:flex-start;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;width:100%;">
+          <span class="tag" style="margin:0;">${m.tipo === 'contato' ? 'Contato' : 'Candidatura'}</span>
+          <button class="del" data-idx="${i}" data-type="mensagem">Excluir</button>
+        </div>
+        <span class="info" style="font-size:13px;line-height:1.5;">${linhas}<small>${m.data}</small></span>
+      </div>`;
+    }).join('');
+    const mensagensLidas = mensagens.map(m => ({...m, lida:true}));
+    writeStore(KEY_MENSAGENS, mensagensLidas);
+    atualizarBadgeAtendimento();
+  }
+
+  $('btn-atendimento').addEventListener('click', ()=>{
+    openModal('modal-login');
+  });
 
   /* Menu mobile */
   $('btn-burger').addEventListener('click', ()=>{
@@ -716,7 +804,11 @@ footer ul a:hover{color:var(--vermelho);}
 
   function renderAll(){ renderVagasPublico(); renderNoticiasPublico(); renderAdminLists(); }
   renderAll();
-  window.addEventListener('storage', (e)=>{ if([KEY_VAGAS, KEY_NOTICIAS].includes(e.key)) renderAll(); });
+  atualizarBadgeAtendimento();
+  window.addEventListener('storage', (e)=>{
+    if([KEY_VAGAS, KEY_NOTICIAS].includes(e.key)) renderAll();
+    if(e.key === KEY_MENSAGENS) atualizarBadgeAtendimento();
+  });
 
   /* Modais */
   qsa('[data-close]').forEach(btn => btn.addEventListener('click', ()=> closeModal(btn.dataset.close)));
@@ -728,7 +820,7 @@ footer ul a:hover{color:var(--vermelho);}
   $('btn-ti-submit').addEventListener('click', ()=>{
     if($('ti-password').value === SENHA_TI){
       closeModal('modal-login'); $('ti-password').value = ''; $('ti-error').classList.remove('show');
-      renderAdminLists(); openModal('modal-admin');
+      renderAdminLists(); renderAtendimento(); openModal('modal-admin');
     } else { $('ti-error').classList.add('show'); }
   });
   $('ti-password').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') $('btn-ti-submit').click(); });
@@ -739,6 +831,7 @@ footer ul a:hover{color:var(--vermelho);}
       qsa('.admin-tab').forEach(t=>t.classList.remove('active'));
       qsa('.admin-tab-content').forEach(c=>c.style.display='none');
       tab.classList.add('active'); $(tab.dataset.tab).style.display='block';
+      if(tab.dataset.tab === 'tab-atendimento') renderAtendimento();
     });
   });
   function showAdminSuccess(){ const el = $('admin-success'); el.classList.add('show'); setTimeout(()=> el.classList.remove('show'), 2200); }
@@ -766,9 +859,9 @@ footer ul a:hover{color:var(--vermelho);}
   document.addEventListener('click', (e)=>{
     if(e.target.classList.contains('del')){
       const idx = +e.target.dataset.idx, type = e.target.dataset.type;
-      if(type === 'vaga'){ const d = readStore(KEY_VAGAS); d.splice(idx,1); writeStore(KEY_VAGAS,d); }
-      if(type === 'noticia'){ const d = readStore(KEY_NOTICIAS); d.splice(idx,1); writeStore(KEY_NOTICIAS,d); }
-      renderAll();
+      if(type === 'vaga'){ const d = readStore(KEY_VAGAS); d.splice(idx,1); writeStore(KEY_VAGAS,d); renderAll(); }
+      if(type === 'noticia'){ const d = readStore(KEY_NOTICIAS); d.splice(idx,1); writeStore(KEY_NOTICIAS,d); renderAll(); }
+      if(type === 'mensagem'){ const d = readStore(KEY_MENSAGENS); d.splice(idx,1); writeStore(KEY_MENSAGENS,d); renderAtendimento(); }
     }
   });
 
@@ -777,10 +870,13 @@ footer ul a:hover{color:var(--vermelho);}
      sem servidor. O JavaScript apenas monta o texto formatado e
      abre o link oficial da API do WhatsApp com window.open.
      ----------------------------------------------------------- */
-  const WHATSAPP_NUMERO = '554988926261'; // número administrativo da Lilian Transportes
+  // ⚠️ NÚMERO DE TESTE: troque pelo seu WhatsApp pessoal com 55 + DDD 49
+  // (ex: "5549912345678") para os testes iniciais. Quando o site for
+  // entregue à Lilian Transportes, troque para o número definitivo deles.
+  const WHATSAPP_TESTE_NUMERO = "554988926261";
 
   function abrirWhatsApp(texto){
-    const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(texto)}`;
+    const url = `https://wa.me/${WHATSAPP_TESTE_NUMERO}?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
   }
 
@@ -810,6 +906,7 @@ footer ul a:hover{color:var(--vermelho);}
 
     $('cadastro-error').classList.remove('show');
     $('cadastro-success').classList.add('show');
+    registrarMensagem('candidatura', {vaga, nome, resumo});
     abrirWhatsApp(texto);
     setTimeout(()=> closeModal('modal-cadastro'), 1800);
   });
@@ -839,6 +936,7 @@ footer ul a:hover{color:var(--vermelho);}
 
     $('contato-error').classList.remove('show');
     $('contato-success').classList.add('show');
+    registrarMensagem('contato', {email: emailCliente, assunto, mensagem});
     abrirWhatsApp(texto);
     form.reset();
     qsa('.assunto-btn').forEach(b=>b.classList.remove('active'));
