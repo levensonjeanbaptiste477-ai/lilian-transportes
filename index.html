@@ -252,6 +252,11 @@ footer ul a:hover{color:var(--vermelho);}
 }
 .vaga-selecionada b{color:var(--preto);}
 .form-note{color:var(--cinza-texto);font-size:11.5px;margin-top:6px;}
+.note-destaque{
+  background:#FDECEC;border:1.5px solid var(--vermelho);border-left:4px solid var(--vermelho);
+  border-radius:6px;padding:12px 14px;color:var(--preto);font-size:13px;font-weight:600;
+  line-height:1.5;margin:4px 0 18px;
+}
 
 /* =========================================================
    13. RESPONSIVIDADE
@@ -263,7 +268,7 @@ footer ul a:hover{color:var(--vermelho);}
 }
 @media (max-width:960px){
   nav.main-nav{display:none;}
-  .nav-actions .btn-outline{display:none;}
+  .nav-actions{display:none;}
   .burger{display:block;}
   .cards-3{grid-template-columns:1fr;}
   .partners-grid{grid-template-columns:1fr;}
@@ -280,6 +285,14 @@ footer ul a:hover{color:var(--vermelho);}
   .assunto-grid{grid-template-columns:1fr;}
   section{padding:60px 0;}
   .footer-grid{grid-template-columns:1fr;}
+  .nav-wrap{padding:12px 16px;}
+  .brand-name{font-size:17px;}
+  .logo-lt{width:44px;height:44px;}
+  .modal-box{padding:26px 20px;max-height:92vh;}
+  .modal-box.wide{padding:26px 18px;}
+  .admin-panel-header{margin:-26px -18px 20px;padding:16px 18px;}
+  .hero-badges{gap:18px;}
+  .hero-badge{font-size:12px;}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important;scroll-behavior:auto !important;}
@@ -323,6 +336,7 @@ footer ul a:hover{color:var(--vermelho);}
     <a href="#noticias">Notícias</a>
     <a href="#contato">Contato</a>
     <button id="btn-checklist-mobile">Checklist</button>
+    <button id="btn-atendimento-mobile">🔔 Painel de Atendimento</button>
   </div>
 </header>
 
@@ -635,7 +649,7 @@ footer ul a:hover{color:var(--vermelho);}
       <input type="hidden" name="vaga" id="cad-vaga">
       <div class="field"><label for="cad-nome">Nome Completo</label><input type="text" name="nome" id="cad-nome" placeholder="Seu nome completo" required></div>
       <div class="field"><label for="cad-resumo">Resumo Profissional / Sobre Você</label><textarea name="resumo" id="cad-resumo" rows="5" placeholder="Conte um pouco da sua experiência profissional" required></textarea></div>
-      <p class="form-note" style="margin:-6px 0 16px;">💡 Nota: O texto do seu currículo será enviado na mensagem a seguir. Se desejar enviar seu PDF completo, anexe-o diretamente usando o clipe de arquivos do seu WhatsApp.</p>
+      <p class="note-destaque">💡 Nota: O texto do seu currículo será enviado na mensagem a seguir. Se desejar enviar seu PDF completo, anexe-o diretamente usando o clipe de arquivos do seu WhatsApp.</p>
       <p class="error-msg" id="cadastro-error">Preencha nome completo e resumo profissional.</p>
       <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;" id="btn-cadastro-submit">Enviar Inscrição</button>
     </form>
@@ -746,6 +760,10 @@ footer ul a:hover{color:var(--vermelho);}
   }
 
   $('btn-atendimento').addEventListener('click', ()=>{
+    openModal('modal-login');
+  });
+  $('btn-atendimento-mobile').addEventListener('click', ()=>{
+    $('mobile-nav').classList.remove('active');
     openModal('modal-login');
   });
 
@@ -870,9 +888,7 @@ footer ul a:hover{color:var(--vermelho);}
      sem servidor. O JavaScript apenas monta o texto formatado e
      abre o link oficial da API do WhatsApp com window.open.
      ----------------------------------------------------------- */
-  // ⚠️ NÚMERO DE TESTE: troque pelo seu WhatsApp pessoal com 55 + DDD 49
-  // (ex: "5549912345678") para os testes iniciais. Quando o site for
-  // entregue à Lilian Transportes, troque para o número definitivo deles.
+  // Número de WhatsApp para onde as mensagens do site são enviadas.
   const WHATSAPP_TESTE_NUMERO = "554988926261";
 
   function abrirWhatsApp(texto){
