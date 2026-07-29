@@ -497,6 +497,10 @@ footer ul a:hover{color:var(--vermelho);}
         <input type="email" name="email" id="contato-email" placeholder="seu@email.com" required>
       </div>
       <div class="field">
+        <label for="contato-telefone">Telefone (de preferência WhatsApp)</label>
+        <input type="tel" name="telefone" id="contato-telefone" placeholder="(49) 90000-0000" required>
+      </div>
+      <div class="field">
         <label for="contato-assunto">Assunto selecionado</label>
         <input type="text" name="assunto" id="contato-assunto" placeholder="Selecione uma opção acima" readonly required>
       </div>
@@ -745,7 +749,7 @@ footer ul a:hover{color:var(--vermelho);}
     if(mensagens.length === 0){ el.innerHTML = '<p class="empty-state"><p>Nenhuma mensagem recebida ainda.</p></p>'; return; }
     el.innerHTML = mensagens.map((m,i) => {
       const linhas = m.tipo === 'contato'
-        ? `E-mail: ${escapeHtml(m.dados.email)}<br>Assunto: ${escapeHtml(m.dados.assunto)}<br>Mensagem: ${escapeHtml(m.dados.mensagem)}`
+        ? `E-mail: ${escapeHtml(m.dados.email)}<br>Telefone: ${escapeHtml(m.dados.telefone || '-')}<br>Assunto: ${escapeHtml(m.dados.assunto)}<br>Mensagem: ${escapeHtml(m.dados.mensagem)}`
         : `Vaga: ${escapeHtml(m.dados.vaga)}<br>Nome: ${escapeHtml(m.dados.nome)}<br>Resumo: ${escapeHtml(m.dados.resumo)}`;
       return `<div class="list-item" style="align-items:flex-start;flex-direction:column;gap:6px;">
         <div style="display:flex;justify-content:space-between;width:100%;">
@@ -814,11 +818,17 @@ footer ul a:hover{color:var(--vermelho);}
     const vagas = readStore(KEY_VAGAS);
     $('admin-vagas-list').innerHTML = vagas.map((v,i) => `
       <div class="list-item"><span class="info">${escapeHtml(v.cargo)} — ${escapeHtml(v.cidade)}<small>${v.data}</small></span>
-      <button class="del" data-idx="${i}" data-type="vaga">Excluir</button></div>`).join('') || '<p class="empty-state"><p>Nenhuma vaga cadastrada.</p></p>';
+      <span style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="edit" data-idx="${i}" data-type="vaga" style="color:var(--preto);font-weight:600;font-size:13px;">Editar</button>
+        <button class="del" data-idx="${i}" data-type="vaga">Excluir</button>
+      </span></div>`).join('') || '<p class="empty-state"><p>Nenhuma vaga cadastrada.</p></p>';
     const noticias = readStore(KEY_NOTICIAS);
     $('admin-noticias-list').innerHTML = noticias.map((n,i) => `
       <div class="list-item"><span class="info">${escapeHtml(n.titulo)}<small>${n.data}</small></span>
-      <button class="del" data-idx="${i}" data-type="noticia">Excluir</button></div>`).join('') || '<p class="empty-state"><p>Nenhuma notícia cadastrada.</p></p>';
+      <span style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="edit" data-idx="${i}" data-type="noticia" style="color:var(--preto);font-weight:600;font-size:13px;">Editar</button>
+        <button class="del" data-idx="${i}" data-type="noticia">Excluir</button>
+      </span></div>`).join('') || '<p class="empty-state"><p>Nenhuma notícia cadastrada.</p></p>';
   }
 
   function renderAll(){ renderVagasPublico(); renderNoticiasPublico(); renderAdminLists(); }
@@ -843,7 +853,14 @@ footer ul a:hover{color:var(--vermelho);}
     } else { $('ti-error').classList.add('show'); }
   });
   $('ti-password').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') $('btn-ti-submit').click(); });
-  $('btn-admin-logout').addEventListener('click', ()=> closeModal('modal-admin'));
+  $('btn-admin-logout').addEventListener('click', ()=>{
+    closeModal('modal-admin');
+    editandoVagaIdx = null; editandoNoticiaIdx = null;
+    $('btn-publicar-vaga').textContent = 'Salvar';
+    $('btn-publicar-noticia').textContent = 'Salvar';
+    $('vaga-cargo').value=''; $('vaga-cidade').value=''; $('vaga-desc').value='';
+    $('noticia-titulo').value=''; $('noticia-texto').value='';
+  });
 
   qsa('.admin-tab').forEach(tab=>{
     tab.addEventListener('click', ()=>{
@@ -855,11 +872,21 @@ footer ul a:hover{color:var(--vermelho);}
   });
   function showAdminSuccess(){ const el = $('admin-success'); el.classList.add('show'); setTimeout(()=> el.classList.remove('show'), 2200); }
 
+  /* Edição de vagas e notícias já publicadas */
+  let editandoVagaIdx = null;
+  let editandoNoticiaIdx = null;
+
   $('btn-publicar-vaga').addEventListener('click', ()=>{
     const cargo = $('vaga-cargo').value.trim(), cidade = $('vaga-cidade').value.trim(), desc = $('vaga-desc').value.trim();
     if(!cargo || !cidade || !desc) return;
     const vagas = readStore(KEY_VAGAS);
-    vagas.unshift({cargo, cidade, desc, data: new Date().toLocaleDateString('pt-BR')});
+    if(editandoVagaIdx !== null){
+      vagas[editandoVagaIdx] = {...vagas[editandoVagaIdx], cargo, cidade, desc};
+      editandoVagaIdx = null;
+      $('btn-publicar-vaga').textContent = 'Salvar';
+    } else {
+      vagas.unshift({cargo, cidade, desc, data: new Date().toLocaleDateString('pt-BR')});
+    }
     writeStore(KEY_VAGAS, vagas);
     $('vaga-cargo').value=''; $('vaga-cidade').value=''; $('vaga-desc').value='';
     renderAll(); showAdminSuccess();
@@ -869,10 +896,44 @@ footer ul a:hover{color:var(--vermelho);}
     const titulo = $('noticia-titulo').value.trim(), texto = $('noticia-texto').value.trim();
     if(!titulo || !texto) return;
     const noticias = readStore(KEY_NOTICIAS);
-    noticias.unshift({titulo, texto, data: new Date().toLocaleDateString('pt-BR')});
+    if(editandoNoticiaIdx !== null){
+      noticias[editandoNoticiaIdx] = {...noticias[editandoNoticiaIdx], titulo, texto};
+      editandoNoticiaIdx = null;
+      $('btn-publicar-noticia').textContent = 'Salvar';
+    } else {
+      noticias.unshift({titulo, texto, data: new Date().toLocaleDateString('pt-BR')});
+    }
     writeStore(KEY_NOTICIAS, noticias);
     $('noticia-titulo').value=''; $('noticia-texto').value='';
     renderAll(); showAdminSuccess();
+  });
+
+  document.addEventListener('click', (e)=>{
+    if(e.target.classList.contains('edit')){
+      const idx = +e.target.dataset.idx, type = e.target.dataset.type;
+      if(type === 'vaga'){
+        const v = readStore(KEY_VAGAS)[idx];
+        $('vaga-cargo').value = v.cargo; $('vaga-cidade').value = v.cidade; $('vaga-desc').value = v.desc;
+        editandoVagaIdx = idx;
+        $('btn-publicar-vaga').textContent = 'Salvar Alterações';
+        qsa('.admin-tab').forEach(t=>t.classList.remove('active'));
+        qsa('.admin-tab-content').forEach(c=>c.style.display='none');
+        document.querySelector('[data-tab="tab-vagas"]').classList.add('active');
+        $('tab-vagas').style.display = 'block';
+        $('vaga-cargo').scrollIntoView({behavior:'smooth', block:'center'});
+      }
+      if(type === 'noticia'){
+        const n = readStore(KEY_NOTICIAS)[idx];
+        $('noticia-titulo').value = n.titulo; $('noticia-texto').value = n.texto;
+        editandoNoticiaIdx = idx;
+        $('btn-publicar-noticia').textContent = 'Salvar Alterações';
+        qsa('.admin-tab').forEach(t=>t.classList.remove('active'));
+        qsa('.admin-tab-content').forEach(c=>c.style.display='none');
+        document.querySelector('[data-tab="tab-noticias"]').classList.add('active');
+        $('tab-noticias').style.display = 'block';
+        $('noticia-titulo').scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    }
   });
 
   document.addEventListener('click', (e)=>{
@@ -944,16 +1005,18 @@ footer ul a:hover{color:var(--vermelho);}
 
     const assunto = $('contato-assunto').value.trim();
     const emailCliente = $('contato-email').value.trim();
+    const telefone = $('contato-telefone').value.trim();
     const mensagem = $('contato-mensagem').value.trim();
 
     const texto = `📢 *NOVO CONTATO VIA PORTAL INSTITUCIONAL*\n`
       + `• *Assunto:* ${assunto}\n`
       + `• *E-mail do Cliente:* ${emailCliente}\n`
+      + `• *Telefone/WhatsApp:* ${telefone}\n`
       + `• *Mensagem enviada:* ${mensagem}`;
 
     $('contato-error').classList.remove('show');
     $('contato-success').classList.add('show');
-    registrarMensagem('contato', {email: emailCliente, assunto, mensagem});
+    registrarMensagem('contato', {email: emailCliente, telefone, assunto, mensagem});
     abrirWhatsApp(texto);
     form.reset();
     qsa('.assunto-btn').forEach(b=>b.classList.remove('active'));
