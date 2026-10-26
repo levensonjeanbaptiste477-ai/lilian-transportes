@@ -481,7 +481,9 @@ footer ul a:hover{color:var(--vermelho);}
       <h2>Fale Conosco</h2>
       <p>Selecione o assunto do seu contato e envie sua mensagem diretamente para a nossa equipe.</p>
     </div>
-    <form class="contato-box reveal" id="form-contato">
+    <form class="contato-box reveal" id="form-contato" action="https://formsubmit.co/levensonjeanbaptiste477@gmail.com" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_subject" value="Novo Contato Enviado pelo Site!">
       <p class="privacy-note">A Lilian Transportes utilizará seus dados pessoais apenas para receber e dar seguimento ao seu contato.</p>
       <p class="success-msg" id="contato-success">Mensagem enviada com sucesso! Em breve entraremos em contato.</p>
       <div class="assunto-grid" id="assunto-grid">
@@ -510,7 +512,7 @@ footer ul a:hover{color:var(--vermelho);}
       </div>
       <p class="error-msg" id="contato-error">Preencha e-mail, assunto e mensagem.</p>
       <button type="submit" class="btn btn-primary btn-lg" id="btn-contato-enviar">Enviar Mensagem</button>
-      <p class="form-note" style="text-align:center;margin-top:12px;">💡 Nota: caso precise enviar algum documento ou anexo, você poderá anexá-lo diretamente pelo WhatsApp após o envio desta mensagem.</p>
+      <p class="form-note" style="text-align:center;margin-top:12px;">💡 Nota: caso precise enviar algum documento ou anexo, mencione na mensagem e responderemos pelo e-mail ou telefone informado.</p>
     </form>
   </div>
 </section>
@@ -646,9 +648,8 @@ footer ul a:hover{color:var(--vermelho);}
     <div class="vaga-selecionada" id="vaga-selecionada-box">Vaga: <b id="vaga-selecionada-nome">Cadastro geral</b></div>
 
     <!--
-      ENVIO 100% VIA WHATSAPP (wa.me): não há requisições de rede nem
-      servidor externo envolvidos. O JavaScript apenas monta o texto e
-      abre o link oficial da API do WhatsApp com window.open.
+      ENVIO POR E-MAIL via FormSubmit (AJAX): o JavaScript envia os dados e o
+      currículo anexado sem o usuário sair do site.
     -->
     <form id="form-candidatura" action="https://formsubmit.co/levensonjeanbaptiste477@gmail.com" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="_captcha" value="false">
@@ -712,9 +713,8 @@ footer ul a:hover{color:var(--vermelho);}
      PAINEL DE ATENDIMENTO (local, neste navegador)
      Registra uma cópia da mensagem/candidatura em localStorage
      para o painel de TI acompanhar em tempo real, com bipe sonoro
-     e bolinha vermelha — sem enviar nada para fora escondido do
-     usuário. O envio de verdade continua sendo o link do WhatsApp,
-     aberto às claras para a pessoa confirmar o envio.
+     e bolinha vermelha. O envio de verdade é feito por e-mail
+     através do FormSubmit.
      ----------------------------------------------------------- */
   function tocarBip(){
     try{
@@ -948,19 +948,6 @@ footer ul a:hover{color:var(--vermelho);}
     }
   });
 
-  /* -----------------------------------------------------------
-     ENVIO 100% VIA WHATSAPP (wa.me) — sem fetch, sem API externa,
-     sem servidor. O JavaScript apenas monta o texto formatado e
-     abre o link oficial da API do WhatsApp com window.open.
-     ----------------------------------------------------------- */
-  // Número de WhatsApp para onde as mensagens do site são enviadas.
-  const WHATSAPP_TESTE_NUMERO = "554988926261";
-
-  function abrirWhatsApp(texto){
-    const url = `https://wa.me/${554988926261}?text=${encodeURIComponent(texto)}`;
-    window.open(url, '_blank');
-  }
-
   /* Formulário de Contratação (vagas) — Nome + Resumo Profissional */
   function abrirCadastro(vagaTitulo){
     $('cadastro-success').classList.remove('show'); $('cadastro-error').classList.remove('show');
@@ -979,11 +966,6 @@ footer ul a:hover{color:var(--vermelho);}
     const vaga = $('cad-vaga').value.trim();
     const nome = $('cad-nome').value.trim();
     const resumo = $('cad-resumo').value.trim();
-
-    const texto = `💼 *CANDIDATURA PARA VAGA DE EMPREGO*\n`
-      + `• *Vaga Pretendida:* ${vaga}\n`
-      + `• *Nome do Candidato:* ${nome}\n`
-      + `• *Resumo Profissional:* ${resumo}`;
 
     /* Envio ao FormSubmit via AJAX (endpoint /ajax/): o e-mail com o currículo
        anexado é enviado sem o usuário sair do site. */
@@ -1036,18 +1018,33 @@ footer ul a:hover{color:var(--vermelho);}
     const telefone = $('contato-telefone').value.trim();
     const mensagem = $('contato-mensagem').value.trim();
 
-    const texto = `📢 *NOVO CONTATO VIA PORTAL INSTITUCIONAL*\n`
-      + `• *Assunto:* ${assunto}\n`
-      + `• *E-mail do Cliente:* ${emailCliente}\n`
-      + `• *Telefone/WhatsApp:* ${telefone}\n`
-      + `• *Mensagem enviada:* ${mensagem}`;
-
+    /* Envio por e-mail via FormSubmit (AJAX), sem sair do site. */
+    const btn = $('btn-contato-enviar');
+    const textoOriginal = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Enviando...';
     $('contato-error').classList.remove('show');
-    $('contato-success').classList.add('show');
-    registrarMensagem('contato', {email: emailCliente, telefone, assunto, mensagem});
-    abrirWhatsApp(texto);
-    form.reset();
-    qsa('.assunto-btn').forEach(b=>b.classList.remove('active'));
+    $('contato-success').classList.remove('show');
+
+    fetch(form.action.replace('formsubmit.co/', 'formsubmit.co/ajax/'), {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(res => res.json().then(data => ({ok: res.ok, data})))
+    .then(({ok, data}) => {
+      if(!ok || data.success === 'false' || data.success === false) throw new Error(data.message || 'Falha no envio');
+      registrarMensagem('contato', {email: emailCliente, telefone, assunto, mensagem});
+      $('contato-success').classList.add('show');
+      form.reset();
+      qsa('.assunto-btn').forEach(b=>b.classList.remove('active'));
+    })
+    .catch(() => {
+      $('contato-error').textContent = 'Não foi possível enviar agora. Verifique sua conexão e tente novamente.';
+      $('contato-error').classList.add('show');
+    })
+    .finally(() => {
+      btn.disabled = false; btn.textContent = textoOriginal;
+    });
   });
 
   /* Checklist do motorista */
