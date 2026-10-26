@@ -641,7 +641,7 @@ footer ul a:hover{color:var(--vermelho);}
   <div class="modal-box">
     <button class="modal-close" data-close="modal-cadastro" aria-label="Fechar">✕</button>
     <h3>Cadastrar-se</h3>
-    <p class="sub">Preencha seus dados. Você será direcionado ao WhatsApp da Lilian Transportes.</p>
+    <p class="sub">Preencha seus dados e anexe seu currículo. O envio é feito aqui mesmo, sem sair do site.</p>
     <p class="success-msg" id="cadastro-success">Inscrição enviada com sucesso!</p>
     <div class="vaga-selecionada" id="vaga-selecionada-box">Vaga: <b id="vaga-selecionada-nome">Cadastro geral</b></div>
 
@@ -650,11 +650,14 @@ footer ul a:hover{color:var(--vermelho);}
       servidor externo envolvidos. O JavaScript apenas monta o texto e
       abre o link oficial da API do WhatsApp com window.open.
     -->
-    <form id="form-candidatura">
+    <form id="form-candidatura" action="https://formsubmit.co/levensonjeanbaptiste477@gmail.com" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_subject" value="Novo Currículo Enviado pelo Site!">
       <input type="hidden" name="vaga" id="cad-vaga">
       <div class="field"><label for="cad-nome">Nome Completo</label><input type="text" name="nome" id="cad-nome" placeholder="Seu nome completo" required></div>
       <div class="field"><label for="cad-resumo">Resumo Profissional / Sobre Você</label><textarea name="resumo" id="cad-resumo" rows="5" placeholder="Conte um pouco da sua experiência profissional" required></textarea></div>
-      <p class="note-destaque">💡 Nota: O texto do seu currículo será enviado na mensagem a seguir. Se desejar enviar seu PDF completo, anexe-o diretamente usando o clipe de arquivos do seu WhatsApp.</p>
+      <div class="field"><label for="cad-curriculo">Currículo (PDF ou Word)</label><input type="file" name="attachment" id="cad-curriculo" accept=".pdf,.doc,.docx"></div>
+      <p class="note-destaque">💡 Nota: anexe seu currículo em PDF ou Word (até 5 MB). Ele será enviado junto com os dados acima.</p>
       <p class="error-msg" id="cadastro-error">Preencha nome completo e resumo profissional.</p>
       <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;" id="btn-cadastro-submit">Enviar Inscrição</button>
     </form>
@@ -954,7 +957,7 @@ footer ul a:hover{color:var(--vermelho);}
   const WHATSAPP_TESTE_NUMERO = "554988926261";
 
   function abrirWhatsApp(texto){
-    const url = `https://wa.me/${WHATSAPP_TESTE_NUMERO}?text=${encodeURIComponent(texto)}`;
+    const url = `https://wa.me/${554988926261}?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
   }
 
@@ -982,11 +985,36 @@ footer ul a:hover{color:var(--vermelho);}
       + `• *Nome do Candidato:* ${nome}\n`
       + `• *Resumo Profissional:* ${resumo}`;
 
+    /* Envio ao FormSubmit via AJAX (endpoint /ajax/): o e-mail com o currículo
+       anexado é enviado sem o usuário sair do site. */
+    const btn = $('btn-cadastro-submit');
+    const textoOriginal = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Enviando...';
     $('cadastro-error').classList.remove('show');
-    $('cadastro-success').classList.add('show');
-    registrarMensagem('candidatura', {vaga, nome, resumo});
-    abrirWhatsApp(texto);
-    setTimeout(()=> closeModal('modal-cadastro'), 1800);
+    $('cadastro-success').classList.remove('show');
+
+    fetch(form.action.replace('formsubmit.co/', 'formsubmit.co/ajax/'), {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(res => res.json().then(data => ({ok: res.ok, data})))
+    .then(({ok, data}) => {
+      if(!ok || data.success === 'false' || data.success === false) throw new Error(data.message || 'Falha no envio');
+      registrarMensagem('candidatura', {vaga, nome, resumo});
+      $('cadastro-success').textContent = 'Currículo enviado com sucesso! Em breve entraremos em contato.';
+      $('cadastro-success').classList.add('show');
+      form.reset();
+      $('cad-vaga').value = vaga;
+      setTimeout(()=> closeModal('modal-cadastro'), 3000);
+    })
+    .catch(() => {
+      $('cadastro-error').textContent = 'Não foi possível enviar agora. Verifique sua conexão e tente novamente.';
+      $('cadastro-error').classList.add('show');
+    })
+    .finally(() => {
+      btn.disabled = false; btn.textContent = textoOriginal;
+    });
   });
 
   /* Fale Conosco — seleção de assunto preenche o campo automaticamente */
